@@ -20,7 +20,14 @@ end
 print("Command Computer Listener Started.")
 print("Waiting for commands on 'state_shift' protocol...")
 
-local wasLeftPowered = rs.getInput("left")
+local wasPowered = false
+local function checkPower()
+    for _, side in ipairs(rs.getSides()) do
+        if rs.getInput(side) then return true end
+    end
+    return false
+end
+wasPowered = checkPower()
 
 while true do
     local eventData = {os.pullEvent()}
@@ -39,11 +46,11 @@ while true do
             end
         end
     elseif event == "redstone" then
-        local isLeftPowered = rs.getInput("left")
-        if isLeftPowered and not wasLeftPowered then
+        local isPowered = checkPower()
+        if isPowered and not wasPowered then
             print("Redstone pulse detected, sending cycle command...")
-            rednet.send(0, {type="cycle"}, "state_shift")
+            rednet.broadcast({type="cycle"}, "state_shift")
         end
     end
-    wasLeftPowered = rs.getInput("left")
+    wasPowered = checkPower()
 end
